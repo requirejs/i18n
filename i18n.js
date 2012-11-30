@@ -83,7 +83,10 @@
     }
 
     define(['module'], function (module) {
-        var masterConfig = module.config();
+        /**
+         * Compatible with requirejs 1.*
+         * /
+        var masterConfig = module.config?module.config():{}; 
 
         return {
             version: '2.0.1',
