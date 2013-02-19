@@ -1,5 +1,5 @@
 /**
- * @license RequireJS i18n 2.0.1+ Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS i18n 2.0.2 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/requirejs/i18n for details
  */
@@ -59,7 +59,7 @@
 
     function addIfExists(req, locale, toLoad, prefix, suffix) {
         var fullName = prefix + locale + '/' + suffix;
-        if (require._fileExists(req.toUrl(fullName))) {
+        if (require._fileExists(req.toUrl(fullName + '.js'))) {
             toLoad.push(fullName);
         }
     }
