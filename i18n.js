@@ -146,7 +146,7 @@
                              navigator.userLanguage || "root").toLowerCase();
 
                         //Override the browser's language using the optional query parameter.
-                        //Written by Sam Reid Chris Malley (PhET Interactive Simulations)
+                        //Written by Chris Malley (PhET Interactive Simulations)
                         if ( typeof localeQueryParameter === 'string' ) {
                             locale = localeQueryParameter;
                         }
