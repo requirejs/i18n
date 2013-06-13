@@ -77,7 +77,12 @@
             if (source.hasOwnProperty(prop) && (!target.hasOwnProperty(prop) || force)) {
                 target[prop] = source[prop];
             } else if (typeof source[prop] === 'object') {
-                mixin(target[prop], source[prop], force);
+                if (target[prop] != null) {
+                    mixin(target[prop], source[prop], force);
+                }
+                else {
+                    target[prop] = source[prop];
+                }
             }
         }
     }
