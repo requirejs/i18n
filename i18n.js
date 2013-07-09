@@ -86,7 +86,7 @@
         var masterConfig = module.config ? module.config() : {};
 
         return {
-            version: '2.0.1+',
+            version: '2.0.2',
             /**
              * Called when a dependency needs to be loaded.
              */
