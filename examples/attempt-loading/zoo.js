@@ -1,0 +1,1 @@
+define("zoo", ["model/animal"]);
