@@ -149,7 +149,7 @@
                     //First, fetch the master bundle, it knows what locales are available.
                     req([masterName], function (master) {
                         //Figure out the best fit
-                        var needed = [],
+                        var needed = [], unknown = [],
                             part;
 
                         //Always allow for root, then do the rest of the locale parts.
@@ -157,24 +157,59 @@
                         for (i = 0; i < parts.length; i++) {
                             part = parts[i];
                             current += (current ? "-" : "") + part;
-                            addPart(current, master, needed, toLoad, prefix, suffix);
+                            if (master[current] !== undefined) {
+                                addPart(current, master, needed, toLoad,
+                                        prefix, suffix);
+                            } else {
+                                unknown.push(current);
+                            }
                         }
 
                         //Load all the parts missing.
-                        req(toLoad, function () {
-                            var i, partBundle, part;
-                            for (i = needed.length - 1; i > -1 && needed[i]; i--) {
-                                part = needed[i];
-                                partBundle = master[part];
-                                if (partBundle === true || partBundle === 1) {
-                                    partBundle = req(prefix + part + '/' + suffix);
+                        function loadKnownParts() {
+                            req(toLoad, function () {
+                                var i, partBundle, part;
+                                for (i = needed.length - 1; i > -1 && needed[i]; i--) {
+                                    part = needed[i];
+                                    partBundle = master[part];
+                                    if (partBundle === true || partBundle === 1) {
+                                        partBundle = req(prefix + part + '/' + suffix);
+                                    }
+                                    mixin(value, partBundle);
                                 }
-                                mixin(value, partBundle);
-                            }
 
-                            //All done, notify the loader.
-                            onLoad(value);
-                        });
+                                //All done, notify the loader.
+                                onLoad(value);
+                            });
+                        }
+
+                        //Try loading one by one parts not specified in the
+                        //master module and when all were processed, load the
+                        //known rest and build the requested bundle.
+                        function loadUnknownParts() {
+                            current = unknown.shift();
+                            if (current) {
+                                req([ prefix + current + '/' + suffix ],
+                                    function () {
+                                        needed.push(current);
+                                        master[current] = true;
+                                        loadUnknownParts();
+                                    }, function () {
+                                        master[current] = false;
+                                        loadUnknownParts();
+                                    });
+                            } else {
+                                loadKnownParts();
+                            }
+                        }
+
+                        //If at least one of the fallback locales was specified
+                        // in the master module, do not try the unspecified.
+                        if (needed.length > 1) {
+                            loadKnownParts();
+                        } else {
+                            loadUnknownParts();
+                        }
                     });
                 }
             }
