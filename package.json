@@ -1,6 +1,6 @@
 {
   "volo": {
-    "url": "https://raw.github.com/requirejs/i18n/{version}/i18n.js"
+    "url": "https://raw.githubusercontent.com/requirejs/i18n/{version}/i18n.js"
   },
   "name": "i18n",
   "description": "An AMD loader plugin for loading internationalization/localization string resources.",
