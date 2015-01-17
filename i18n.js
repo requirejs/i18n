@@ -37,14 +37,6 @@
 (function () {
     'use strict';
 
-    //regexp for reconstructing the master bundle name from parts of the regexp match
-    //nlsRegExp.exec("foo/bar/baz/nls/en-ca/foo") gives:
-    //["foo/bar/baz/nls/en-ca/foo", "foo/bar/baz/nls/", "/", "/", "en-ca", "foo"]
-    //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
-    //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
-    //so, if match[5] is blank, it means this is the top bundle definition.
-    var nlsRegExp = /(^.*(^|\/)nls(\/|$))([^\/]*)\/?([^\/]*)/;
-
     //Helper function to avoid repeating code. Lots of arguments in the
     //desire to stay functional and support RequireJS contexts without having
     //to know about the RequireJS contexts.
@@ -98,6 +90,18 @@
 
                 if (config.locale) {
                     masterConfig.locale = config.locale;
+                }
+
+                //regexp for reconstructing the master bundle name from parts of the regexp match
+                //nlsRegExp.exec("foo/bar/baz/nls/en-ca/foo") gives:
+                //["foo/bar/baz/nls/en-ca/foo", "foo/bar/baz/nls/", "/", "/", "en-ca", "foo"]
+                //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
+                //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
+                //so, if match[5] is blank, it means this is the top bundle definition.
+                if(config.i18n && config.i18n.nls) {
+                    var nlsRegExp = new RegExp('(^.*(^|\/)'+config.i18n.nls+'(\/|$))([^\/]*)\/?([^\/]*)');
+                }else{
+                    nlsRegExp = /(^.*(^|\/)nls(\/|$))([^\/]*)\/?([^\/]*)/;
                 }
 
                 var masterName,
