@@ -91,18 +91,15 @@
                 if (config.locale) {
                     masterConfig.locale = config.locale;
                 }
-
+                
                 //regexp for reconstructing the master bundle name from parts of the regexp match
                 //nlsRegExp.exec("foo/bar/baz/nls/en-ca/foo") gives:
                 //["foo/bar/baz/nls/en-ca/foo", "foo/bar/baz/nls/", "/", "/", "en-ca", "foo"]
                 //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
                 //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
                 //so, if match[5] is blank, it means this is the top bundle definition.
-                if(config.i18n && config.i18n.nls) {
-                    var nlsRegExp = new RegExp('(^.*(^|\/)'+config.i18n.nls+'(\/|$))([^\/]*)\/?([^\/]*)');
-                }else{
-                    nlsRegExp = /(^.*(^|\/)nls(\/|$))([^\/]*)\/?([^\/]*)/;
-                }
+                var nlsFolder = (config.i18n && config.i18n.nls) || 'nls';
+                var nlsRegExp = new RegExp('(^.*(^|\/)'+nlsFolder+'(\/|$))([^\/]*)\/?([^\/]*)');
 
                 var masterName,
                     match = nlsRegExp.exec(name),
