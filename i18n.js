@@ -37,6 +37,7 @@
 (function () {
     'use strict';
 
+    debugger
     //Helper function to avoid repeating code. Lots of arguments in the
     //desire to stay functional and support RequireJS contexts without having
     //to know about the RequireJS contexts.
@@ -77,7 +78,17 @@
         }
     }
 
+    //regexp for reconstructing the master bundle name from parts of the regexp match
+    //nlsRegExp.exec("foo/bar/baz/nls/en-ca/foo") gives:
+    //["foo/bar/baz/nls/en-ca/foo", "foo/bar/baz/nls/", "/", "/", "en-ca", "foo"]
+    //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
+    //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
+    //so, if match[5] is blank, it means this is the top bundle definition.
+    var nlsFolder = (requirejs.s.contexts._.config.i18n && requirejs.s.contexts._.config.i18n.nls) || 'nls';
+    var nlsRegExp = new RegExp('(^.*(^|\/)'+nlsFolder+'(\/|$))([^\/]*)\/?([^\/]*)');
+
     define(['module'], function (module) {
+        debugger
         var masterConfig = module.config ? module.config() : {};
 
         return {
@@ -85,21 +96,13 @@
             /**
              * Called when a dependency needs to be loaded.
              */
+            
             load: function (name, req, onLoad, config) {
                 config = config || {};
 
                 if (config.locale) {
                     masterConfig.locale = config.locale;
                 }
-                
-                //regexp for reconstructing the master bundle name from parts of the regexp match
-                //nlsRegExp.exec("foo/bar/baz/nls/en-ca/foo") gives:
-                //["foo/bar/baz/nls/en-ca/foo", "foo/bar/baz/nls/", "/", "/", "en-ca", "foo"]
-                //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
-                //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
-                //so, if match[5] is blank, it means this is the top bundle definition.
-                var nlsFolder = (config.i18n && config.i18n.nls) || 'nls';
-                var nlsRegExp = new RegExp('(^.*(^|\/)'+nlsFolder+'(\/|$))([^\/]*)\/?([^\/]*)');
 
                 var masterName,
                     match = nlsRegExp.exec(name),
