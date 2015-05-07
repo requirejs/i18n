@@ -125,7 +125,8 @@
                     if (!locale) {
                         locale = masterConfig.locale =
                             typeof navigator === "undefined" ? "root" :
-                            (navigator.language ||
+                            ((navigator.languages && navigator.languages[0]) ||
+                             navigator.language ||
                              navigator.userLanguage || "root").toLowerCase();
                     }
                     parts = locale.split("-");
