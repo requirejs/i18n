@@ -43,7 +43,9 @@
     //nlsRegExp.exec("foo/bar/baz/nls/foo") gives:
     //["foo/bar/baz/nls/foo", "foo/bar/baz/nls/", "/", "/", "foo", ""]
     //so, if match[5] is blank, it means this is the top bundle definition.
-    var nlsRegExp = /(^.*(^|\/)nls(\/|$))([^\/]*)\/?([^\/]*)/;
+    var nlsRegExp = /(^.*(^|\/)nls(\/|$))([^\/]*)\/?([^\/]*)/,
+        fs,
+        getContents;
 
     //Helper function to avoid repeating code. Lots of arguments in the
     //desire to stay functional and support RequireJS contexts without having
@@ -85,6 +87,62 @@
         }
     }
 
+    //File loading helper function, lifted from the text plugin.
+    //No browser version, this is only used for building
+    if (typeof process !== "undefined" &&
+             process.versions &&
+             !!process.versions.node) {
+        //Using special require.nodeRequire, something added by r.js.
+        fs = require.nodeRequire('fs');
+
+        getContents = function (url) {
+            var file = fs.readFileSync(url, 'utf8');
+            //Remove BOM (Byte Mark Order) from utf8 files if it is there.
+            if (file.indexOf('\uFEFF') === 0) {
+                file = file.substring(1);
+            }
+            return file;
+        };
+    } else if (typeof Packages !== 'undefined') {
+        //Why Java, why is this so awkward?
+        getContents = function (url) {
+            var encoding = "utf-8",
+                file = new java.io.File(url),
+                lineSeparator = java.lang.System.getProperty("line.separator"),
+                input = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(file), encoding)),
+                stringBuffer, line,
+                content = '';
+            try {
+                stringBuffer = new java.lang.StringBuffer();
+                line = input.readLine();
+
+                // Byte Order Mark (BOM) - The Unicode Standard, version 3.0, page 324
+                // http://www.unicode.org/faq/utf_bom.html
+
+                // Note that when we use utf-8, the BOM should appear as "EF BB BF", but it doesn't due to this bug in the JDK:
+                // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4508058
+                if (line && line.length() && line.charAt(0) === 0xfeff) {
+                    // Eat the BOM, since we've already found the encoding on this file,
+                    // and we plan to concatenating this buffer with others; the BOM should
+                    // only appear at the top of a file.
+                    line = line.substring(1);
+                }
+
+                stringBuffer.append(line);
+
+                while ((line = input.readLine()) !== null) {
+                    stringBuffer.append(lineSeparator);
+                    stringBuffer.append(line);
+                }
+                //Make sure we return a JavaScript string and not a Java string.
+                content = String(stringBuffer.toString()); //String
+            } finally {
+                input.close();
+            }
+            return getContents;
+        };
+    }
+
     define(['module'], function (module) {
         var masterConfig = module.config ? module.config() : {};
 
@@ -108,7 +166,7 @@
                     parts = locale.split("-"),
                     toLoad = [],
                     value = {},
-                    i, part, current = "";
+                    i, part, masterContent, masterTemp, current = "";
 
                 //If match[5] is blank, it means this is the top bundle definition,
                 //so it does not have to be handled. Locale-specific requests
@@ -133,19 +191,49 @@
                 }
 
                 if (config.isBuild) {
-                    //Check for existence of all locale possible files and
-                    //require them if exist.
+                    // Push the requirement for the master bundle
                     toLoad.push(masterName);
-                    addIfExists(req, "root", toLoad, prefix, suffix);
-                    for (i = 0; i < parts.length; i++) {
-                        part = parts[i];
-                        current += (current ? "-" : "") + part;
-                        addIfExists(req, current, toLoad, prefix, suffix);
+                    
+                    //Inlining not enabled or we're processing a specific locale
+                    if (config.inlinei18n !== true || config.locale) {
+                        
+                        addIfExists(req, "root", toLoad, prefix, suffix);
+                        for (i = 0; i < parts.length; i++) {
+                            part = parts[i];
+                            current += (current ? "-" : "") + part;
+                            addIfExists(req, current, toLoad, prefix, suffix);
+                        }
+
+                        req(toLoad, function () {
+                            onLoad();
+                        });
+                        
+                    //inlining enabled and a specific locale was not specified
+                    //include all the locales
+                    } else {  
+                        //Put the master bundle into a temp module (not included
+                        //in the optimized output).
+                        masterContent = getContents(req.toUrl(masterName));
+                        masterTemp = Math.random().toString(36);
+                        onLoad.fromText(masterTemp, masterContent);
+                        
+                        //Require in the master bundle to get locales
+                        req([masterTemp], function(master) {
+                            var locale;
+                            // Go through all the translations, adding them to the load list
+                            for(locale in master) {
+                                // Try to load any enabled translations
+                                if (master.hasOwnProperty(locale) && master[locale] === true) {
+                                    addIfExists(req, locale, toLoad, prefix, suffix);
+                                }
+                            }
+                            
+                            req(toLoad, function () {
+                                onLoad();
+                            });
+                        });
                     }
 
-                    req(toLoad, function () {
-                        onLoad();
-                    });
                 } else {
                     //First, fetch the master bundle, it knows what locales are available.
                     req([masterName], function (master) {
