@@ -98,6 +98,9 @@
 
                 if (config.locale) {
                     masterConfig.locale = config.locale;
+                } else if(config.i18n)
+                {
+                    masterConfig.locale = config.i18n.locale;
                 }
 
                 var masterName,
