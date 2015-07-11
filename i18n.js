@@ -1,5 +1,5 @@
 /**
- * @license RequireJS i18n 2.0.5 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS i18n 2.0.6 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/requirejs/i18n for details
  */
@@ -89,7 +89,7 @@
         var masterConfig = module.config ? module.config() : {};
 
         return {
-            version: '2.0.5',
+            version: '2.0.6',
             /**
              * Called when a dependency needs to be loaded.
              */
