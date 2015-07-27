@@ -123,11 +123,17 @@
                     suffix = match[4];
                     locale = masterConfig.locale;
                     if (!locale) {
-                        locale = masterConfig.locale =
-                            typeof navigator === 'undefined' ? 'root' :
-                            ((navigator.languages && navigator.languages[0]) ||
-                             navigator.language ||
-                             navigator.userLanguage || 'root').toLowerCase();
+                        // Check if locale is set in localStorage otherwise use browser language
+                        if (typeof localStorage !== "undefined" && localStorage.getItem('locale')) {
+                            locale = masterConfig.locale = localStorage.getItem('locale');
+                        }
+                        else {
+                            locale = masterConfig.locale =
+                                typeof navigator === "undefined" ? "root" :
+                                    ((navigator.languages && navigator.languages[0]) ||
+                                     navigator.language ||
+                                     navigator.userLanguage || "root").toLowerCase();
+                        }
                     }
                     parts = locale.split('-');
                 }
