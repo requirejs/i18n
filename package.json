@@ -11,7 +11,7 @@
     "url": "https://github.com/requirejs/i18n.git"
   },
   "author": "jrburke <jrburke@gmail.com>",
-  "license": "BSD or MIT",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/requirejs/i18n/issues"
   },

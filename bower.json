@@ -1,5 +1,6 @@
 {
   "name": "i18n",
   "version": "2.0.6",
-  "main": "i18n.js"
+  "main": "i18n.js",
+  "license": "MIT"
 }
